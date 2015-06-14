@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+
+  "name": "省左手",
+  "description": "惠惠买手，自动填地址、卡号、单号、图片",
+  "version": "0.0.4",
+
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "desktopCapture",
+    "activeTab",
+    "storage",
+    "http://buyers.youdao.com/",
+    "https://www.amazon.co.jp/"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://buyers.youdao.com/*", "https://www.amazon.co.jp/*"],
+      "css": ["/css/farmer.css"],
+      "js": ["/js/jquery.js", "/js/farmer.js"]
+    }
+  ]
+}
