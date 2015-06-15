@@ -90,7 +90,7 @@ var getPrice = function () {
         console.log('nowPrice: ' + nowPrice);
         if ((originPrice > 5000 && nowPrice - originPrice > 240) || (originPrice < 5000 && nowPrice - originPrice > 120)) {
             $('.a-size-medium.a-color-price.aok-align-bottom.aok-nowrap'
-            + '.grand-total-price.a-text-right > strong').css('backgroud', '#f00').css('color', '#fff');
+            + '.grand-total-price.a-text-right > strong').css('color', '#fff').parent().css('background', '#f00');
         }
     });
 };
