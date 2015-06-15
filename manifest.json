@@ -4,7 +4,9 @@
   "name": "省左手",
   "description": "惠惠买手，自动填地址、卡号、单号、图片",
   "version": "0.0.4",
-
+  "background": {
+    "scripts": ["js/jquery.js", "js/background.js"]
+  },
   "browser_action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"
@@ -13,6 +15,7 @@
     "desktopCapture",
     "activeTab",
     "storage",
+    "tabCapture",
     "http://buyers.youdao.com/",
     "https://www.amazon.co.jp/"
   ],

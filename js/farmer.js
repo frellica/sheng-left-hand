@@ -8,12 +8,15 @@ var companyDict = {
     '佐川急便': 'SGH',
     'Yamato': 'Yamato',
     'Japan Post': 'JPPOST'
-}
+};
+
+
 
 var processHuihui = function (amazonEmail) {
     var name = $('#firstname').val() + ' ' + $('#lastname').val();
     originPrice = parseInt($('#panel1 div.large-12').eq(5).html().replace('订单总金额：JPY', ''), 10);
     chrome.storage.local.set({
+        huihuiOrderId: $('.page-content > .row.panel > .column.center').eq(0).html().replace('订单号：', ''),
         name: name,
         originPrice: parseInt(originPrice, 10),
         address1: $('#address1').val(),
@@ -22,7 +25,6 @@ var processHuihui = function (amazonEmail) {
         zip1: $('#zip').val().split('-')[0],
         zip2: $('#zip').val().split('-')[1],
         tel: $('#tel').val()
-
     }, function() {
         console.log('name saved as ' + name);
     });
@@ -72,6 +74,12 @@ var fillCreditCard = function (creditCard, securityCode) {
     }, 3000);
 };
 var fillHuihui = function () {
+    chrome.runtime.sendMessage({
+                action: 'save',
+                creditCard: $('#creditCard').val(),
+                securityCode: $('#securityCode').val(),
+                amazonEmail: $('#amazonEmail').val()
+            });
     var delay = setTimeout(function () {
         var orderId = $('#orders-list .shipment > b').html();
         chrome.storage.local.set({
@@ -82,7 +90,11 @@ var fillHuihui = function () {
     }, 800);
 }
 var getPrice = function () {
-    chrome.storage.local.get(['originPrice'], function(data) {
+    chrome.storage.local.get(['originPrice', 'huihuiOrderId'], function(data) {
+        chrome.runtime.sendMessage({
+            action: 'capture',
+            huihuiOrderId: data['huihuiOrderId']
+        });
         var originPrice = data['originPrice'];
         var nowPrice = parseInt($('.a-size-medium.a-color-price.aok-align-bottom.aok-nowrap'
             + '.grand-total-price.a-text-right > strong').html().replace('￥ ', '').replace(',', ''), 10);
@@ -138,7 +150,8 @@ var update = function (data) {
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {
             fillPackId();
         }
-        if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/') > -1) {
+        if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/') > -1
+            && window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/spc/handlers/display.html') === -1) {
             setTimeout(function() {
                 chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
             }, 1000);
