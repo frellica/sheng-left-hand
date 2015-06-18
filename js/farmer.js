@@ -7,7 +7,10 @@ var opened = false;
 var companyDict = {
     '佐川急便': 'SGH',
     'Yamato': 'Yamato',
-    'Japan Post': 'JPPOST'
+    'Japan Post': 'JPPOST',
+    'エコ配': 'OTHER',
+    'ヤマト運輸': 'Yamato',
+    '佐川急便(e飛伝PRO)': 'SGH'
 };
 
 
@@ -29,12 +32,16 @@ var processHuihui = function (amazonEmail) {
         console.log('name saved as ' + name);
     });
     $('.table-content.merchant-form > .row .row .large-4.columns input').val(originPrice);
+    nowOrderId = '';
+    nowPackId = '';
     var timer = setInterval(function () {
         chrome.storage.local.get(['orderId', 'realPrice', 'packId', 'company'], function(data) {
-            if (data['orderId']) {
+            if (data['orderId'] && data['orderId'] !== nowOrderId) {
+                nowOrderId = data['orderId'];
                 $('.table-content.merchant-form > .row > .columns').eq(1).children().val(data['orderId']);
             }
-            if (data['packId']) {
+            if (data['packId'] && data['packId'] !== nowPackId) {
+                nowPackId = data['packId'];
                 $('#shipping-form-tracking-id').val(data['packId']);
                 if (companyDict[data['company']]) {
                     $('#shipping-company-select').val(companyDict[data['company']]);
