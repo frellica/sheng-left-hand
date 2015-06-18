@@ -1,5 +1,3 @@
-var nowUrl = window.location.href;
-console.log(nowUrl);
 var amazonEmail = '',
     creditCard = '',
     securityCode = '';
@@ -45,7 +43,7 @@ var processHuihui = function (amazonEmail) {
         });
     }, 1000);
     $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
-    $('#order-capture-input').val(141852);
+    $('#order-capture-input').val(0);
 };
 
 var fillAddress = function () {
