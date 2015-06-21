@@ -5,7 +5,8 @@ var opened = false;
 var companyDict = {
     '佐川急便': 'SGH',
     'Yamato': 'Yamato',
-    'Japan Post': 'JPPOST'
+    'Japan Post': 'JPPOST',
+    '日本郵便': 'JPPOST'
 };
 
 
@@ -43,7 +44,7 @@ var processHuihui = function (amazonEmail) {
         });
     }, 1000);
     $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
-    $('#order-capture-input').val(0);
+    $('#order-capture-input').val(141852);
 };
 
 var fillAddress = function () {
