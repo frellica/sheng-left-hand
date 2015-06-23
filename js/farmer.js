@@ -8,7 +8,8 @@ var companyDict = {
     'Japan Post': 'JPPOST',
     'エコ配': 'OTHER',
     'ヤマト運輸': 'Yamato',
-    '佐川急便(e飛伝PRO)': 'SGH'
+    '佐川急便(e飛伝PRO)': 'SGH',
+    '日本郵便': 'JPPOST'
 };
 
 
@@ -50,7 +51,7 @@ var processHuihui = function (amazonEmail) {
         });
     }, 1000);
     $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
-    $('#order-capture-input').val(0);
+    $('#order-capture-input').val(141852);
 };
 
 var fillAddress = function () {
