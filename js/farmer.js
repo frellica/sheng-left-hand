@@ -11,6 +11,9 @@ var companyDict = {
     '佐川急便(e飛伝PRO)': 'SGH',
     '日本郵便': 'JPPOST'
 };
+var addressDict = {
+    '埼玉県': 'Saitama-ken'
+};
 
 
 
@@ -59,7 +62,11 @@ var fillAddress = function () {
         $('#enterAddressFullName').val(data['name']);
         $('#enterAddressPostalCode1').val(data['zip1']);
         $('#enterAddressPostalCode2').val(data['zip2']);
-        $('#enterAddressStateOrRegion').val(data['state']);
+        if ($('[value=Hokkaido]').length > 0) {
+            $('#enterAddressStateOrRegion').val(addressDict[data['state']]);
+        } else {
+            $('#enterAddressStateOrRegion').val(data['state']);
+        }
         $('#enterAddressAddressLine1').val(data['address1']);
         $('#enterAddressAddressLine2').val(data['address2']);
         $('#enterAddressPhoneNumber').val(data['tel']);
