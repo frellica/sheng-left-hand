@@ -2,7 +2,7 @@
 * @Author: frellica
 * @Date:   2015-06-15 20:31:56
 * @Last Modified by:   frellica
-* @Last Modified time: 2015-06-15 22:58:02
+* @Last Modified time: 2015-06-24 02:42:23
 */
 
 'use strict';
@@ -67,5 +67,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         //         }
         //     }
         // }, handleCapture);
+    } else if (request.action === 'refreshOrderId') {
+            chrome.tabs.query({
+            currentWindow: true,
+            url: 'http://*/*'
+        }, function (tabs) {
+            console.log('tabs');
+            for (var i = 0; i < tabs.length; i++) {
+                chrome.tabs.sendMessage(tabs[i].id, {
+                    action: 'refreshOrderIdFromBackground',
+                });
+            };
+        });
     }
 });

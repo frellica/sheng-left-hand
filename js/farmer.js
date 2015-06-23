@@ -14,10 +14,46 @@ var companyDict = {
 var addressDict = {
     '埼玉県': 'Saitama-ken'
 };
+var orderTemplate = '<a href="#" class="button tiny js-add-order"'
+    + ' data-id="#orderId#">填写#orderId#</a>';
 
+var inputTemplate = '<div class="row collapse"><div class="small-10 columns"><input type="text" '
+    + 'msg="商家订单号" placeholder="商家订单ID" class="order-id-input"></div><div class="small-2 columns">'
+    + '<a href="#" class="button postfix js-refresh-order-id">get</a></div></div>';
 
+var refreshOrder = function () {
+    chrome.storage.local.get(['orderId'], function(data) {
+        if (data['orderId'] && data['orderId'].length === 1 && $('.order-id-input:focus').length === 0) {
+            nowOrderId = data['orderId'][0];
+            $('.order-id-input').val(data['orderId'][0]);
+        } else if (data['orderId']) {
+            var optionsHtml = '';
+            for (var i = 0; i < data['orderId'].length; i++) {
+                optionsHtml += orderTemplate.replace(/#orderId#/g, data['orderId'][i]);
+            }
+            $('#additionalOrder > div.large-10').html(optionsHtml);
+        }
+    });
+    return false;
+};
 
 var processHuihui = function (amazonEmail) {
+    var nowOrderId = '';
+    if ($('#additionalOrder').length === 0) {
+        $('.table-content.merchant-form').append('<div class="row" id="additionalOrder">'
+            + '<div class="large-2 columns">备选商家订单id</div><div class="large-10 columns"></div></div>');
+        $('.table-content.merchant-form > .row > .columns').eq(1).html(inputTemplate);
+        $(document).on('click', '.js-add-order', function () {
+            $('.order-id-input').val($(this).data('id'));
+            return false;
+        });
+        $(document).on('click', '.js-refresh-order-id', refreshOrder);
+        $('.button.tiny.merchant-form-add').on('click', function () {
+            $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
+            $('#order-capture-input').val(141852);
+        });
+    }
+
     var name = $('#firstname').val() + ' ' + $('#lastname').val();
     originPrice = parseInt($('#panel1 div.large-12').eq(5).html().replace('订单总金额：JPY', ''), 10);
     chrome.storage.local.set({
@@ -34,14 +70,10 @@ var processHuihui = function (amazonEmail) {
         console.log('name saved as ' + name);
     });
     $('.table-content.merchant-form > .row .row .large-4.columns input').val(originPrice);
-    nowOrderId = '';
-    nowPackId = '';
+    
+    var nowPackId = '';
     var timer = setInterval(function () {
-        chrome.storage.local.get(['orderId', 'realPrice', 'packId', 'company'], function(data) {
-            if (data['orderId'] && data['orderId'] !== nowOrderId) {
-                nowOrderId = data['orderId'];
-                $('.table-content.merchant-form > .row > .columns').eq(1).children().val(data['orderId']);
-            }
+        chrome.storage.local.get(['packId', 'company'], function(data) {
             if (data['packId'] && data['packId'] !== nowPackId) {
                 nowPackId = data['packId'];
                 $('#shipping-form-tracking-id').val(data['packId']);
@@ -87,18 +119,18 @@ var fillCreditCard = function (creditCard, securityCode) {
     }, 3000);
 };
 var fillHuihui = function () {
-    chrome.runtime.sendMessage({
-                action: 'save',
-                creditCard: $('#creditCard').val(),
-                securityCode: $('#securityCode').val(),
-                amazonEmail: $('#amazonEmail').val()
-            });
     var delay = setTimeout(function () {
-        var orderId = $('#orders-list .shipment > b').html();
+        var orderIdList = []
+        $('#orders-list .shipment > b').each(function (index) {
+            orderIdList.push($('#orders-list .shipment > b').eq(index).html());
+        });
         chrome.storage.local.set({
-            orderId: orderId
+            orderId: orderIdList
         }, function() {
-            console.log('order id saved as ' + orderId);
+            console.log('order id saved as ' + orderIdList);
+            chrome.runtime.sendMessage({
+                action: 'refreshOrderId',
+            });
         });
     }, 800);
 }
@@ -164,7 +196,11 @@ var update = function (data) {
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {
             fillPackId();
         }
-        if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/') > -1
+        if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
+            setTimeout(function() {
+                chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
+            }, 2000);
+        } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/') > -1
             && window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/spc/handlers/display.html') === -1) {
             setTimeout(function() {
                 chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
@@ -182,6 +218,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         }, function () {
             console.log('saved', request);
         })
+    } else if (request.action === 'refreshOrderIdFromBackground'){
+        refreshOrder();
     }
 });
 chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
