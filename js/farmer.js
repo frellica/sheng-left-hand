@@ -1,6 +1,7 @@
 var amazonEmail = '',
     creditCard = '',
     securityCode = '';
+var uploadImageUrl = 'http://buyers.youdao.com/order/uploadImage';
 var opened = false;
 var companyDict = {
     '佐川急便': 'SGH',
@@ -23,6 +24,10 @@ var inputTemplate = '<div class="row collapse"><div class="small-10 columns"><in
 
 var refreshOrder = function () {
     chrome.storage.local.get(['orderId'], function(data) {
+        if (typeof data['orderId'] === 'string') {
+            // 兼容未升级老数据
+            data['orderId'] = [data['orderId']];
+        }
         if (data['orderId'] && data['orderId'].length === 1 && $('.order-id-input:focus').length === 0) {
             nowOrderId = data['orderId'][0];
             $('.order-id-input').val(data['orderId'][0]);
@@ -35,6 +40,56 @@ var refreshOrder = function () {
         }
     });
     return false;
+};
+var dataURItoBlob = function (dataURI) {
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    var byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+        byteString = atob(dataURI.split(',')[1]);
+    else
+        byteString = unescape(dataURI.split(',')[1]);
+    
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    
+    // write the bytes of the string to a typed array
+    var ia = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ia], {type: mimeString});
+}
+var getCookie = function (key) {
+    return (result = new RegExp('(?:^|; )' + encodeURIComponent(key) + '=([^;]*)').exec(document.cookie)) ? decodeURIComponent(result[1]) : null
+};
+
+var uploadImage = function (image) {
+    var blob = dataURItoBlob(image);
+    var formData = new FormData();
+    formData.append('Filename', 'temp.png');
+    formData.append('Filedata', blob);
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', uploadImageUrl);
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            if (!data.success) {
+                console.log('上传失败，', data);
+            } else {
+                console.log(data);
+                $('#order-capture-input').val(data.id);
+                $('#upload-btn').addClass('title-update-btn success')
+                    .removeClass('title-upload-btn').html('上传成功');
+                chrome.runtime.sendMessage({
+                    action: 'uploadImageDone',
+                });
+            }
+            console.log('done');
+        } else {
+            console.log('upload error');
+        }
+    }
+    xhr.send(formData);
 };
 
 var processHuihui = function (amazonEmail) {
@@ -50,7 +105,6 @@ var processHuihui = function (amazonEmail) {
         $(document).on('click', '.js-refresh-order-id', refreshOrder);
         $('.button.tiny.merchant-form-add').on('click', function () {
             $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
-            $('#order-capture-input').val(141852);
         });
     }
 
@@ -86,7 +140,6 @@ var processHuihui = function (amazonEmail) {
         });
     }, 1000);
     $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
-    $('#order-capture-input').val(141852);
 };
 
 var fillAddress = function () {
@@ -113,7 +166,7 @@ var fillCreditCard = function (creditCard, securityCode) {
         var timerFill = setInterval(function () {
             if ($('#spinner-anchor').css('display') === 'none') {
                 $('.card-pcard-field.a-input-text-wrapper > input').val(securityCode);
-                clearInterval(timerFill)
+                clearInterval(timerFill);
             }
         }, 500);
     }, 3000);
@@ -136,10 +189,15 @@ var fillHuihui = function () {
 }
 var getPrice = function () {
     chrome.storage.local.get(['originPrice', 'huihuiOrderId'], function(data) {
-        chrome.runtime.sendMessage({
-            action: 'capture',
-            huihuiOrderId: data['huihuiOrderId']
-        });
+        var timerCapture = setInterval(function () {
+            if ($('#spinner-anchor').css('display') === 'none') {
+                chrome.runtime.sendMessage({
+                    action: 'capture',
+                    huihuiOrderId: data['huihuiOrderId']
+                });
+                clearInterval(timerCapture);
+            }
+        }, 500);
         var originPrice = data['originPrice'];
         var nowPrice = parseInt($('.a-size-medium.a-color-price.aok-align-bottom.aok-nowrap'
             + '.grand-total-price.a-text-right > strong').html().replace('￥ ', '').replace(',', ''), 10);
@@ -218,8 +276,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         }, function () {
             console.log('saved', request);
         })
-    } else if (request.action === 'refreshOrderIdFromBackground'){
+    } else if (request.action === 'refreshOrderIdFromBackground') {
         refreshOrder();
+    } else if (request.action === 'captureDone') {
+        $('.a-row.a-size-large.a-text-bold.a-spacing-mini').append('<span class="farmer notice">截图上传完毕</span>');
+    } else if (request.action === 'uploadImage') {
+        uploadImage(request.image);
     }
 });
 chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);

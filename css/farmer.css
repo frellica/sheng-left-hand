@@ -1,10 +1,13 @@
 /* 
 * @Author: frellica
 * @Date:   2015-06-13 02:52:07
-* @Last Modified by:   frellica
-* @Last Modified time: 2015-06-24 02:02:48
+* @Last Modified by:   gilbetliu
+* @Last Modified time: 2015-06-24 17:14:44
 */
 #additionalOrder > div > a.button.tiny {
     float: left;
     margin-right: 10px;
+}
+.farmer.notice {
+    color: red;
 }

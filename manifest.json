@@ -12,6 +12,7 @@
     "default_popup": "popup.html"
   },
   "permissions": [
+    "<all_urls>",
     "desktopCapture",
     "activeTab",
     "storage",
