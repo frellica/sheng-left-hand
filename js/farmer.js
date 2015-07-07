@@ -236,6 +236,26 @@ var fillPackId = function () {
         }
     }, 800);
 };
+var refillAddress = function () {
+    if ($('.displayAddressLI.displayAddressFullName').length > 0) {
+        chrome.storage.local.set({
+            name: $('.displayAddressLI.displayAddressFullName').eq(0).html()
+        });
+    }
+    chrome.storage.local.get(['name', 'address1', 'address2', 'state', 'zip1', 'zip2', 'tel'], function (data) {
+        $('#enterAddressFullName').val(data['name']);
+        $('#enterAddressPostalCode1').val(data['zip1']);
+        $('#enterAddressPostalCode2').val(data['zip2']);
+        if ($('[value=Hokkaido]').length > 0) {
+            $('#enterAddressStateOrRegion').val(addressDict[data['state']]);
+        } else {
+            $('#enterAddressStateOrRegion').val(data['state']);
+        }
+        $('#enterAddressAddressLine1').val(data['address1']);
+        $('#enterAddressAddressLine2').val(data['address2']);
+        $('#enterAddressPhoneNumber').val(data['tel']);
+    });
+}
 var update = function (data) {
     amazonEmail = data.amazonEmail;
     creditCard = data.creditCard;
@@ -253,6 +273,8 @@ var update = function (data) {
             getPrice();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {
             fillPackId();
+        } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/order/edit.html') > -1) {
+            refillAddress();
         }
         if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
             setTimeout(function() {
