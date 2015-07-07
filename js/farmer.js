@@ -160,15 +160,17 @@ var fillAddress = function () {
 
 var fillCreditCard = function (creditCard, securityCode) {
     var delay = setTimeout(function () {
-        $('#pm_0').trigger('click');
-        $('#addCreditCardNumber').val(creditCard);
-        $('#confirm-card').trigger('click');
-        var timerFill = setInterval(function () {
-            if ($('#spinner-anchor').css('display') === 'none') {
-                $('.card-pcard-field.a-input-text-wrapper > input').val(securityCode);
-                clearInterval(timerFill);
-            }
-        }, 500);
+        if (!$('#pm_300').is(':checked')) {
+            $('#pm_0').trigger('click');
+            $('#addCreditCardNumber').val(creditCard);
+            $('#confirm-card').trigger('click');
+            var timerFill = setInterval(function () {
+                if ($('#spinner-anchor').css('display') === 'none') {
+                    $('.card-pcard-field.a-input-text-wrapper > input').val(securityCode);
+                    clearInterval(timerFill);
+                }
+            }, 500);
+        }
     }, 3000);
 };
 var fillHuihui = function () {
