@@ -236,6 +236,35 @@ var fillPackId = function () {
         }
     }, 800);
 };
+var newFillPackId = function () {
+    var company,
+        packId;
+    var delay = setTimeout(function () {
+        var packData = $('.a-row.a-spacing-top-mini.a-size-small.a-color-tertiary.ship-track-grid-subtext').text();
+        if (packData.indexOf('配送業者') > -1) {
+            company = packData.split('、')[0].split('：')[1];
+            packId = packData.split('、')[1].split('：')[1];
+        } else {
+            company = packData.split(', ')[0].split(': ')[1];
+            packId = packData.split(', ')[1].split(': ')[1];
+        }
+        console.log(company);
+        chrome.storage.local.set({
+            packId: packId,
+            company: company
+        }, function() {
+            console.log('packId saved as ' + packId);
+        });
+        var orderId = window.location.href.split('orderId=')[1].split('&')[0];
+        var url = 'http://buyers.youdao.com/order/myorders?showOrderId=&merchantOrderId='
+            + orderId + '&trackingNo=&merchantAccount=&globalOrderStatus=&buyerOrderStatus='
+            + '&domain=&startTime=&endTime=&page=1';
+        if (!opened) {
+            opened = true;
+            window.open(url);
+        }
+    }, 800);
+};
 var update = function (data) {
     amazonEmail = data.amazonEmail;
     creditCard = data.creditCard;
@@ -253,6 +282,8 @@ var update = function (data) {
             getPrice();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {
             fillPackId();
+        } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/your-account/ship-track') > -1) {
+            newFillPackId();
         }
         if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
             setTimeout(function() {
