@@ -10,7 +10,8 @@ var companyDict = {
     'エコ配': 'OTHER',
     'ヤマト運輸': 'Yamato',
     '佐川急便(e飛伝PRO)': 'SGH',
-    '日本郵便': 'JPPOST'
+    '日本郵便': 'JPPOST',
+    'メール便': 'SGH'
 };
 var addressDict = {
     '埼玉県': 'Saitama-ken'
