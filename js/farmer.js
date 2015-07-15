@@ -110,7 +110,7 @@ var processHuihui = function (amazonEmail) {
     }
 
     var name = $('#firstname').val() + ' ' + $('#lastname').val();
-    originPrice = parseInt($('#panel1 div.large-12').eq(5).html().replace('订单总金额：JPY', ''), 10);
+    originPrice = parseInt($('#panel1 div.large-12').eq(-1).html().replace('订单总金额：JPY', ''), 10);
     chrome.storage.local.set({
         huihuiOrderId: $('.page-content > .row.panel > .column.center').eq(0).html().replace('订单号：', ''),
         name: name,
