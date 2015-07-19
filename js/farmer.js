@@ -264,6 +264,9 @@ var newFillPackId = function () {
         packId;
     var delay = setTimeout(function () {
         var packData = $('.a-row.a-spacing-top-mini.a-size-small.a-color-tertiary.ship-track-grid-subtext').text();
+        if (!packData) {
+            packData = $('.a-row.a-spacing-top-small.a-size-small.a-color-tertiary').text();
+        }
         if (packData.indexOf('配送業者') > -1) {
             company = packData.split('、')[0].split('：')[1];
             packId = packData.split('、')[1].split('：')[1];
