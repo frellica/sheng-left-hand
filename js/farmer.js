@@ -110,7 +110,13 @@ var processHuihui = function (amazonEmail) {
     }
 
     var name = $('#firstname').val() + ' ' + $('#lastname').val();
-    originPrice = parseInt($('#panel1 div.large-12').eq(-1).html().replace('订单总金额：JPY', ''), 10);
+    var originPrice = '';
+    var rawPrice = $('#panel1 div.large-12').eq(-1).html();
+    if (rawPrice.indexOf('JPY') > -1) {
+        originPrice = parseInt(rawPrice.replace('订单总金额：JPY', ''), 10);
+    } else {
+        originPrice = parseFloat(rawPrice.replace('订单总金额：$', ''), 10);
+    }
     chrome.storage.local.set({
         huihuiOrderId: $('.page-content > .row.panel > .column.center').eq(0).html().replace('订单号：', ''),
         name: name,
@@ -118,6 +124,7 @@ var processHuihui = function (amazonEmail) {
         address1: $('#address1').val(),
         address2: $('#address2').val(),
         state: $('#state').val(),
+        city: $('#city').val(),
         zip1: $('#zip').val().split('-')[0],
         zip2: $('#zip').val().split('-')[1],
         tel: $('#tel').val()
@@ -159,6 +166,19 @@ var fillAddress = function () {
     });
 };
 
+var fill6pmAddress = function () {
+    chrome.storage.local.get(['name', 'address1', 'address2', 'state', 'zip1', 'tel', 'city'], function (data) {
+        $('#AddressForm_NAME').val(data['name']);
+        $('#AddressForm_ZIP_CODE').val(data['zip1']);
+        $('#AddressForm_STATE_OR_REGION').val(data['state']);
+        $('#AddressForm_ADDRESS_LINE_1').val(data['address1']);
+        $('#AddressForm_ADDRESS_LINE_2').val(data['address2']);
+        $('#AddressForm_CITY').val(data['city']);
+        $('#AddressForm_PHONE_NUMBER').val(data['tel']);
+    });
+    $('input[name=isAlsoBillingAddress]').attr('checked', false);
+};
+
 var fillCreditCard = function (creditCard, securityCode) {
     var delay = setTimeout(function () {
         if (!$('#pm_300').is(':checked')) {
@@ -189,7 +209,25 @@ var fillHuihui = function () {
             });
         });
     }, 800);
-}
+};
+
+var fillHuihuiFrom6pm = function () {
+    var delay = setTimeout(function () {
+        var orderIdList = []
+        $('#orders-list .shipment > b').each(function (index) {
+            orderIdList.push($('.thank-you-order-id.a-text-bold').text());
+        });
+        chrome.storage.local.set({
+            orderId: orderIdList
+        }, function() {
+            console.log('order id saved as ' + orderIdList);
+            chrome.runtime.sendMessage({
+                action: 'refreshOrderId',
+            });
+        });
+    }, 800);
+};
+
 var getPrice = function () {
     chrome.storage.local.get(['originPrice', 'huihuiOrderId'], function(data) {
         var timerCapture = setInterval(function () {
@@ -300,10 +338,14 @@ var update = function (data) {
             processHuihui(amazonEmail);
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/addressselect/handlers/display.htm') > -1) {
             fillAddress();
+        } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/address') > -1) {
+            fill6pmAddress();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/payselect/handlers/display.html') > -1) {
             fillCreditCard(creditCard, securityCode);
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
             fillHuihui();
+        } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/thankyou') > -1) {
+            fillHuihuiFrom6pm();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/spc/handlers/display.htm') > -1) {
             getPrice();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {

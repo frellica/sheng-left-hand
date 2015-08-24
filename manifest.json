@@ -18,11 +18,12 @@
     "storage",
     "tabCapture",
     "http://buyers.youdao.com/",
-    "https://www.amazon.co.jp/"
+    "https://www.amazon.co.jp/",
+    "https://secure-www.6pm.com/"
   ],
   "content_scripts": [
     {
-      "matches": ["http://buyers.youdao.com/*", "https://www.amazon.co.jp/*"],
+      "matches": ["http://buyers.youdao.com/*", "https://www.amazon.co.jp/*", "https://secure-www.6pm.com/*"],
       "css": ["/css/farmer.css"],
       "js": ["/js/jquery.js", "/js/farmer.js"]
     }
