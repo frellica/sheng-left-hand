@@ -1,6 +1,7 @@
 var amazonEmail = '',
-    creditCard = '',
-    securityCode = '';
+    creditCard = [],
+    securityCode = ''
+    checker = null;
 var uploadImageUrl = 'http://buyers.youdao.com/order/uploadImage';
 var opened = false;
 var companyDict = {
@@ -165,7 +166,15 @@ var fillAddress = function () {
         $('#enterAddressPhoneNumber').val(data['tel']);
     });
 };
-
+var setUrlCheck = function (url) {
+    clearInterval(checker);
+    var checker = setInterval(function () {
+        if (window.location.href.indexOf(url) === -1) {
+            clearInterval(checker);
+            chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
+        }
+    }, 1000);
+}
 var fill6pmAddress = function () {
     chrome.storage.local.get(['name', 'address1', 'address2', 'state', 'zip1', 'tel', 'city'], function (data) {
         $('#AddressForm_NAME').val(data['name']);
@@ -175,6 +184,7 @@ var fill6pmAddress = function () {
         $('#AddressForm_ADDRESS_LINE_2').val(data['address2']);
         $('#AddressForm_CITY').val(data['city']);
         $('#AddressForm_PHONE_NUMBER').val(data['tel']);
+        setUrlCheck('https://secure-www.6pm.com/checkout/address');
     });
     $('input[name=isAlsoBillingAddress]').attr('checked', false);
 };
@@ -183,7 +193,7 @@ var fillCreditCard = function (creditCard, securityCode) {
     var delay = setTimeout(function () {
         if (!$('#pm_300').is(':checked')) {
             $('#pm_0').trigger('click');
-            $('#addCreditCardNumber').val(creditCard);
+            $('#addCreditCardNumber').val(creditCard[0]);
             $('#confirm-card').trigger('click');
             var timerFill = setInterval(function () {
                 if ($('#spinner-anchor').css('display') === 'none') {
@@ -193,6 +203,26 @@ var fillCreditCard = function (creditCard, securityCode) {
             }, 500);
         }
     }, 3000);
+};
+var findAndFill = function (creditCard) {
+    var input = $('.a-input-text.a-spacing-micro.address-challenge-show.spacing-right-small.aok-float-left.payment-not-selected-hide-js.card-number');
+    input.each(function () {
+        var tail = $(this).data('card-tail');
+        for (var i = 0; i < creditCard.length; i++) {
+            if (creditCard[i].indexOf(tail) > -1) {
+                $(this).val(creditCard[i]);
+            }
+        }
+    });
+}
+var fill6pmCreditCard = function (creditCard, securityCode) {
+    console.log('fill6pmCreditCard');
+    var delay = setTimeout(function () {
+        findAndFill(creditCard);
+    }, 500);
+    $('input[name=paymentMethod]').on('click', function () {
+        findAndFill(creditCard);
+    });
 };
 var fillHuihui = function () {
     var delay = setTimeout(function () {
@@ -248,6 +278,16 @@ var getPrice = function () {
             $('.a-size-medium.a-color-price.aok-align-bottom.aok-nowrap'
             + '.grand-total-price.a-text-right > strong').css('color', '#fff').parent().css('background', '#f00');
         }
+    });
+};
+var capture6pm = function () {
+    chrome.storage.local.get(['huihuiOrderId'], function(data) {
+        var timerCapture = setTimeout(function () {
+            chrome.runtime.sendMessage({
+                action: 'capture',
+                huihuiOrderId: data['huihuiOrderId']
+            });
+        }, 500);
     });
 };
 var fillPackId = function () {
@@ -329,9 +369,13 @@ var newFillPackId = function () {
         }
     }, 800);
 };
+var forceGoToAddressPage = function () {
+    window.location.href = '/checkout/address?ref_=chk_addr_change_coll&referrer=spc';
+}
 var update = function (data) {
     amazonEmail = data.amazonEmail;
     creditCard = data.creditCard;
+    console.log(creditCard);
     securityCode = data.securityCode;
     var delayUpdate = setTimeout(function () {
         if (window.location.href.indexOf('http://buyers.youdao.com/order?id=') > -1) {
@@ -340,8 +384,14 @@ var update = function (data) {
             fillAddress();
         } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/address') > -1) {
             fill6pmAddress();
+        } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/spc') > -1) {
+            forceGoToAddressPage();
+        } else if (window.location.href.indexOf('https://secure-www.6pm.com/orders/') > -1) {
+            capture6pm();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/payselect/handlers/display.html') > -1) {
             fillCreditCard(creditCard, securityCode);
+        } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/pay') > -1) {
+            fill6pmCreditCard(creditCard, securityCode);
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
             fillHuihui();
         } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/thankyou') > -1) {
@@ -370,17 +420,21 @@ var update = function (data) {
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
     console.log(request);
     if(request.action === 'save'){
-        chrome.storage.local.set({
-            amazonEmail: request.amazonEmail,
-            creditCard: request.creditCard,
-            securityCode: request.securityCode
-        }, function () {
+        toSetData = {};
+        debugger
+        for (var i in request) {
+            if (i !== 'action' && request[i]) {
+                toSetData[i] = request[i]
+            }
+        }
+        chrome.storage.local.set(toSetData, function () {
             console.log('saved', request);
         })
     } else if (request.action === 'refreshOrderIdFromBackground') {
         refreshOrder();
     } else if (request.action === 'captureDone') {
         $('.a-row.a-size-large.a-text-bold.a-spacing-mini').append('<span class="farmer notice">截图上传完毕</span>');
+        $('.z-hd-kufi').append('<span class="farmer notice">截图上传完毕</span>');
     } else if (request.action === 'uploadImage') {
         uploadImage(request.image);
     }
