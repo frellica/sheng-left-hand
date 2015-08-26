@@ -13,7 +13,8 @@ var companyDict = {
     '佐川急便(e飛伝PRO)': 'SGH',
     '日本郵便': 'JPPOST',
     'メール便': 'SGH',
-    'UPS': 'UPS'
+    'UPS': 'UPS',
+    'FedEx': 'Fedex'
 };
 var addressDict = {
     '埼玉県': 'Saitama-ken'
@@ -245,9 +246,7 @@ var fillHuihui = function () {
 var fillHuihuiFrom6pm = function () {
     var delay = setTimeout(function () {
         var orderIdList = []
-        $('#orders-list .shipment > b').each(function (index) {
-            orderIdList.push($('.thank-you-order-id.a-text-bold').text());
-        });
+        orderIdList.push($('.thank-you-order-id.a-text-bold').text());
         chrome.storage.local.set({
             orderId: orderIdList
         }, function() {
@@ -445,7 +444,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
     console.log(request);
     if(request.action === 'save'){
         toSetData = {};
-        debugger
         for (var i in request) {
             if (i !== 'action' && request[i]) {
                 toSetData[i] = request[i]
