@@ -11,7 +11,8 @@ var companyDict = {
     'ヤマト運輸': 'Yamato',
     '佐川急便(e飛伝PRO)': 'SGH',
     '日本郵便': 'JPPOST',
-    'メール便': 'SGH'
+    'メール便': 'SGH',
+    'UPS': 'UPS'
 };
 var addressDict = {
     '埼玉県': 'Saitama-ken'
@@ -142,7 +143,7 @@ var processHuihui = function (amazonEmail) {
                 if (companyDict[data['company']]) {
                     $('#shipping-company-select').val(companyDict[data['company']]);
                 } else {
-                    $('#shipping-company-select').val('Yamato');
+                    $('#shipping-company-select').val('OTHER');
                 }
             }
         });
@@ -277,6 +278,27 @@ var fillPackId = function () {
         }
     }, 800);
 };
+var fill6pmPackId = function () {
+    var delay = setTimeout(function () {
+        var packId = $('li.ccInfo p').eq(1).text();
+        var company = $('li.ccInfo p').eq(0).text();
+        console.log(company);
+        chrome.storage.local.set({
+            packId: packId,
+            company: company
+        }, function() {
+            console.log('packId saved as ' + packId);
+        });
+        var orderId = window.location.href.split('/')[4];
+        var url = 'http://buyers.youdao.com/order/myorders?showOrderId=&merchantOrderId='
+            + orderId + '&trackingNo=&merchantAccount=&globalOrderStatus=&buyerOrderStatus='
+            + '&domain=&startTime=&endTime=&page=1';
+        if (!opened) {
+            opened = true;
+            window.open(url);
+        }
+    }, 800);
+};
 var refillAddress = function () {
     if ($('.displayAddressLI.displayAddressFullName').length > 0) {
         chrome.storage.local.set({
@@ -350,6 +372,8 @@ var update = function (data) {
             getPrice();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {
             fillPackId();
+        } else if (window.location.href.indexOf('https://secure-www.6pm.com/shipments/') > -1) {
+            fill6pmPackId();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/order/edit.html') > -1) {
             refillAddress();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/your-account/ship-track') > -1) {
