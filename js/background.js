@@ -2,7 +2,7 @@
 * @Author: frellica
 * @Date:   2015-06-15 20:31:56
 * @Last Modified by:   gilbetliu
-* @Last Modified time: 2015-08-25 15:35:18
+* @Last Modified time: 2015-08-26 11:20:25
 */
 
 'use strict';
@@ -46,6 +46,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         chrome.tabs.query({
             currentWindow: true,
             url: 'https://www.amazon.co.jp/gp/buy/spc/handlers/display.html?hasWorkingJavascript=1'
+        }, function (tabs) {
+            console.log('tabs');
+            for (var i = 0; i < tabs.length; i++) {
+                chrome.tabs.sendMessage(tabs[i].id, {
+                    action: 'captureDone',
+                });
+            };
+        });
+        chrome.tabs.query({
+            currentWindow: true,
+            url: 'https://secure-www.6pm.com/orders/*'
         }, function (tabs) {
             console.log('tabs');
             for (var i = 0; i < tabs.length; i++) {

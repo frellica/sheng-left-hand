@@ -2,7 +2,7 @@
 * @Author: frellica
 * @Date:   2015-06-13 04:20:50
 * @Last Modified by:   frellica
-* @Last Modified time: 2015-06-13 13:43:28
+* @Last Modified time: 2015-08-25 21:58:47
 */
 
 'use strict';
@@ -16,7 +16,7 @@ $('#save').on('click', function () {
         for (var i = 0; i < tabs.length; i++) {
             chrome.tabs.sendMessage(tabs[i].id, {
                 action: 'save',
-                creditCard: $('#creditCard').val(),
+                creditCard: $('#creditCard').val().split(';'),
                 securityCode: $('#securityCode').val(),
                 amazonEmail: $('#amazonEmail').val()
             });
