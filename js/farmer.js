@@ -194,18 +194,27 @@ var fill6pmAddress = function () {
 var fillCreditCard = function (creditCard, securityCode) {
     var delay = setTimeout(function () {
         if (!$('#pm_300').is(':checked')) {
-            $('#pm_0').trigger('click');
-            $('#addCreditCardNumber').val(creditCard[0]);
-            $('#confirm-card').trigger('click');
-            var timerFill = setInterval(function () {
-                if ($('#spinner-anchor').css('display') === 'none') {
-                    $('.card-pcard-field.a-input-text-wrapper > input').val(securityCode);
-                    clearInterval(timerFill);
-                }
+            console.log('fillJpCreditCard');
+            var delay = setTimeout(function () {
+                findAndFillJp(creditCard);
             }, 500);
+            $('input[name=paymentMethod]').on('click', function () {
+                findAndFillJp(creditCard);
+            });
         }
     }, 3000);
 };
+var findAndFillJp = function (creditCard) {
+    var input = $('.a-input-text-wrapper.aok-float-left.a-spacing-micro.spacing-right-small > input');
+    input.each(function () {
+        var tail = $(this).data('tail');
+        for (var i = 0; i < creditCard.length; i++) {
+            if (creditCard[i].indexOf(tail) > -1) {
+                $(this).val(creditCard[i]);
+            }
+        }
+    });
+}
 var findAndFill = function (creditCard) {
     var input = $('.a-input-text.a-spacing-micro.address-challenge-show.spacing-right-small.aok-float-left.payment-not-selected-hide-js.card-number');
     input.each(function () {
