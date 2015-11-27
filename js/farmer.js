@@ -130,6 +130,8 @@ var processHuihui = function (amazonEmail) {
         city: $('#city').val(),
         zip1: $('#zip').val().split('-')[0],
         zip2: $('#zip').val().split('-')[1],
+        zip: $('#zip').val(),
+        county: $('#county').val(),
         tel: $('#tel').val()
     }, function() {
         console.log('name saved as ' + name);
@@ -153,6 +155,21 @@ var processHuihui = function (amazonEmail) {
     $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
 };
 
+var fillUSAddress = function () {
+    chrome.storage.local.get(['name', 'address1', 'address2', 'state', 'zip', 'tel', 'city'], function (data) {
+        $('#enterAddressFullName').val(data['name']);
+        $('#enterAddressPostalCode').val(data['zip']);
+        if ($('[value=Hokkaido]').length > 0) {
+            $('#enterAddressStateOrRegion').val(addressDict[data['state']]);
+        } else {
+            $('#enterAddressStateOrRegion').val(data['state']);
+        }
+        $('#enterAddressAddressLine1').val(data['address1']);
+        $('#enterAddressAddressLine2').val(data['address2']);
+        $('#enterAddressCity').val(data['city']);
+        $('#enterAddressPhoneNumber').val(data['tel']);
+    });
+};
 var fillAddress = function () {
     chrome.storage.local.get(['name', 'address1', 'address2', 'state', 'zip1', 'zip2', 'tel'], function (data) {
         $('#enterAddressFullName').val(data['name']);
@@ -204,8 +221,32 @@ var fillCreditCard = function (creditCard, securityCode) {
         }
     }, 3000);
 };
+var fillCreditCardUS = function (creditCard, securityCode) {
+    var delay = setTimeout(function () {
+        if (!$('#pm_300').is(':checked')) {
+            console.log('fillJpCreditCard');
+            var delay = setTimeout(function () {
+                findAndFillUS(creditCard);
+            }, 500);
+            $('input[name=paymentMethod]').on('click', function () {
+                findAndFillUS(creditCard);
+            });
+        }
+    }, 3000);
+};
 var findAndFillJp = function (creditCard) {
     var input = $('.a-input-text-wrapper.aok-float-left.a-spacing-micro.spacing-right-small > input');
+    input.each(function () {
+        var tail = $(this).data('tail');
+        for (var i = 0; i < creditCard.length; i++) {
+            if (creditCard[i].indexOf(tail) > -1) {
+                $(this).val(creditCard[i]);
+            }
+        }
+    });
+}
+var findAndFillUS = function (creditCard) {
+    var input = $('#addCreditCardNumber');
     input.each(function () {
         var tail = $(this).data('tail');
         for (var i = 0; i < creditCard.length; i++) {
@@ -240,6 +281,22 @@ var fillHuihui = function () {
         var orderIdList = []
         $('#orders-list .shipment > b').each(function (index) {
             orderIdList.push($('#orders-list .shipment > b').eq(index).html());
+        });
+        chrome.storage.local.set({
+            orderId: orderIdList
+        }, function() {
+            console.log('order id saved as ' + orderIdList);
+            chrome.runtime.sendMessage({
+                action: 'refreshOrderId',
+            });
+        });
+    }, 800);
+};
+var fillHuihuiUS = function () {
+    var delay = setTimeout(function () {
+        var orderIdList = []
+        $('h5 > span.a-text-bold').each(function (index) {
+            orderIdList.push($('h5 > span.a-text-bold').eq(index).html());
         });
         chrome.storage.local.set({
             orderId: orderIdList
@@ -412,6 +469,8 @@ var update = function (data) {
             processHuihui(amazonEmail);
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/addressselect/handlers/display.htm') > -1) {
             fillAddress();
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/buy/addressselect/handlers/display.htm') > -1) {
+            fillUSAddress();
         } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/address') > -1) {
             fill6pmAddress();
         } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/spc') > -1) {
@@ -420,21 +479,33 @@ var update = function (data) {
             capture6pm();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/payselect/handlers/display.html') > -1) {
             fillCreditCard(creditCard, securityCode);
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/buy/payselect/handlers/display.html') > -1) {
+            fillCreditCardUS(creditCard, securityCode);
         } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/pay') > -1) {
             fill6pmCreditCard(creditCard, securityCode);
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
             fillHuihui();
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/buy/thankyou/handlers/display.html') > -1) {
+            fillHuihuiUS();
         } else if (window.location.href.indexOf('https://secure-www.6pm.com/checkout/thankyou') > -1) {
             fillHuihuiFrom6pm();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/spc/handlers/display.htm') > -1) {
             getPrice();
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/buy/spc/handlers/display.htm') > -1) {
+            getPrice();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {
+            fillPackId();
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/css/shiptrack/view.html') > -1) {
             fillPackId();
         } else if (window.location.href.indexOf('https://secure-www.6pm.com/shipments/') > -1) {
             fill6pmPackId();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/order/edit.html') > -1) {
             refillAddress();
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/css/order/edit.html') > -1) {
+            refillAddress();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/your-account/ship-track') > -1) {
+            newFillPackId();
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/your-account/ship-track') > -1) {
             newFillPackId();
         }
         if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
@@ -443,6 +514,15 @@ var update = function (data) {
             }, 2000);
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/') > -1
             && window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/spc/handlers/display.html') === -1) {
+            setTimeout(function() {
+                chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
+            }, 1000);
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/buy/thankyou/handlers/display.html') > -1) {
+            setTimeout(function() {
+                chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
+            }, 2000);
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/buy/') > -1
+            && window.location.href.indexOf('https://www.amazon.com/gp/buy/spc/handlers/display.html') === -1) {
             setTimeout(function() {
                 chrome.storage.local.get(['amazonEmail', 'creditCard', 'securityCode'], update);
             }, 1000);

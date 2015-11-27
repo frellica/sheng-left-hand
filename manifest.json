@@ -23,7 +23,7 @@
   ],
   "content_scripts": [
     {
-      "matches": ["http://buyers.youdao.com/*", "https://www.amazon.co.jp/*", "https://secure-www.6pm.com/*"],
+      "matches": ["http://buyers.youdao.com/*", "https://www.amazon.co.jp/*", "https://www.amazon.com/*", "https://secure-www.6pm.com/*"],
       "css": ["/css/farmer.css"],
       "js": ["/js/jquery.js", "/js/farmer.js"]
     }
