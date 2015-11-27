@@ -14,6 +14,7 @@ var companyDict = {
     '日本郵便': 'JPPOST',
     'メール便': 'SGH',
     'UPS': 'UPS',
+    'USPS': 'USPS',
     'FedEx': 'Fedex'
 };
 var addressDict = {
