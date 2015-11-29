@@ -15,7 +15,8 @@ var companyDict = {
     'メール便': 'SGH',
     'UPS': 'UPS',
     'USPS': 'USPS',
-    'FedEx': 'Fedex'
+    'FedEx': 'Fedex',
+    'ONTRAC': 'ONTRAC'
 };
 var addressDict = {
     '埼玉県': 'Saitama-ken'
