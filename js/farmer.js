@@ -155,6 +155,21 @@ var processHuihui = function (amazonEmail) {
         });
     }, 1000);
     $('.table-content.merchant-form > .row > .columns').eq(2).children().val(amazonEmail);
+    if ($('body').data('alerted') !== 'done') {
+        $('body').data('alerted', 'done');
+        var memoList = $('.large-3.column.panel .blueText, .large-3.column.panel .redText');
+        var alertText = '';
+        var thisText = '';
+        for (var i = 0; i < memoList.length; i++) {
+            thisText = $.trim(memoList.eq(i).text())
+            if (thisText !== '无') {
+                alertText += thisText + '；';
+            }
+        }
+        if (alertText) {
+            alert(alertText);
+        }
+    }
 };
 
 var fillUSAddress = function () {
@@ -234,6 +249,11 @@ var fillCreditCardUS = function (creditCard, securityCode) {
                 findAndFillUS(creditCard);
             });
         }
+        var tip = $('.a-row.a-spacing-small label[for=gcpromoinput] span');
+        if (tip.data('done') !== 'done') {
+            tip.data('done', 'done');
+            tip.html(tip.html() + '<em style="color:red;font-size:18px;">注意优惠码<em>');
+        }
     }, 3000);
 };
 var findAndFillJp = function (creditCard) {
@@ -248,7 +268,7 @@ var findAndFillJp = function (creditCard) {
     });
 }
 var findAndFillUS = function (creditCard) {
-    var input = $('#addCreditCardNumber');
+    var input = $('.a-input-text.a-span12.a-spacing-micro');
     input.each(function () {
         var tail = $(this).data('tail');
         for (var i = 0; i < creditCard.length; i++) {
@@ -340,6 +360,28 @@ var getPrice = function () {
         var originPrice = data['originPrice'];
         var nowPrice = parseInt($('.a-size-medium.a-color-price.aok-align-bottom.aok-nowrap'
             + '.grand-total-price.a-text-right > strong').html().replace('￥ ', '').replace(',', ''), 10);
+        console.log('originPrice: ' + originPrice);
+        console.log('nowPrice: ' + nowPrice);
+        if ((originPrice > 5000 && nowPrice - originPrice > 240) || (originPrice < 5000 && nowPrice - originPrice > 120)) {
+            $('.a-size-medium.a-color-price.aok-align-bottom.aok-nowrap'
+            + '.grand-total-price.a-text-right > strong').css('color', '#fff').parent().css('background', '#f00');
+        }
+    });
+};
+var getPriceUS = function () {
+    chrome.storage.local.get(['originPrice', 'huihuiOrderId'], function(data) {
+        var timerCapture = setInterval(function () {
+            if ($('#spinner-anchor').css('display') === 'none') {
+                chrome.runtime.sendMessage({
+                    action: 'capture',
+                    huihuiOrderId: data['huihuiOrderId']
+                });
+                clearInterval(timerCapture);
+            }
+        }, 500);
+        var originPrice = data['originPrice'];
+        var nowPrice = parseInt($('.a-color-price.a-size-medium.a-text-right.a-align-bottom.aok-nowrap'
+            + '.grand-total-price.a-text-bold').html().replace('$', '').replace(',', ''), 10);
         console.log('originPrice: ' + originPrice);
         console.log('nowPrice: ' + nowPrice);
         if ((originPrice > 5000 && nowPrice - originPrice > 240) || (originPrice < 5000 && nowPrice - originPrice > 120)) {
@@ -494,7 +536,7 @@ var update = function (data) {
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/spc/handlers/display.htm') > -1) {
             getPrice();
         } else if (window.location.href.indexOf('https://www.amazon.com/gp/buy/spc/handlers/display.htm') > -1) {
-            getPrice();
+            getPriceUS();
         } else if (window.location.href.indexOf('https://www.amazon.co.jp/gp/css/shiptrack/view.html') > -1) {
             fillPackId();
         } else if (window.location.href.indexOf('https://www.amazon.com/gp/css/shiptrack/view.html') > -1) {
@@ -548,6 +590,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
     } else if (request.action === 'captureDone') {
         $('.a-row.a-size-large.a-text-bold.a-spacing-mini').append('<span class="farmer notice">截图上传完毕</span>');
         $('.z-hd-kufi').append('<span class="farmer notice">截图上传完毕</span>');
+        $('#a-popover-amzn-logo-popover').next().children('h1').append('<span class="farmer notice">截图上传完毕</span>');
     } else if (request.action === 'uploadImage') {
         uploadImage(request.image);
     }

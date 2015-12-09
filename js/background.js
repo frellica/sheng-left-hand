@@ -1,8 +1,8 @@
 /* 
 * @Author: frellica
 * @Date:   2015-06-15 20:31:56
-* @Last Modified by:   gilbetliu
-* @Last Modified time: 2015-08-26 11:20:25
+* @Last Modified by:   frellica
+* @Last Modified time: 2015-11-29 22:30:13
 */
 
 'use strict';
@@ -46,6 +46,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         chrome.tabs.query({
             currentWindow: true,
             url: 'https://www.amazon.co.jp/gp/buy/spc/handlers/display.html?hasWorkingJavascript=1'
+        }, function (tabs) {
+            console.log('tabs');
+            for (var i = 0; i < tabs.length; i++) {
+                chrome.tabs.sendMessage(tabs[i].id, {
+                    action: 'captureDone',
+                });
+            };
+        });
+        chrome.tabs.query({
+            currentWindow: true,
+            url: 'https://www.amazon.com/gp/buy/spc/handlers/display.html?hasWorkingJavascript=1'
         }, function (tabs) {
             console.log('tabs');
             for (var i = 0; i < tabs.length; i++) {
