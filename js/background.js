@@ -2,7 +2,7 @@
 * @Author: frellica
 * @Date:   2015-06-15 20:31:56
 * @Last Modified by:   frellica
-* @Last Modified time: 2015-11-29 22:30:13
+* @Last Modified time: 2016-01-02 19:10:31
 */
 
 'use strict';
@@ -68,6 +68,28 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         chrome.tabs.query({
             currentWindow: true,
             url: 'https://secure-www.6pm.com/orders/*'
+        }, function (tabs) {
+            console.log('tabs');
+            for (var i = 0; i < tabs.length; i++) {
+                chrome.tabs.sendMessage(tabs[i].id, {
+                    action: 'captureDone',
+                });
+            };
+        });
+        chrome.tabs.query({
+            currentWindow: true,
+            url: 'https://www.amazon.com/gp/your-account/order-details/*'
+        }, function (tabs) {
+            console.log('tabs');
+            for (var i = 0; i < tabs.length; i++) {
+                chrome.tabs.sendMessage(tabs[i].id, {
+                    action: 'captureDone',
+                });
+            };
+        });
+        chrome.tabs.query({
+            currentWindow: true,
+            url: 'https://www.amazon.co.jp/gp/your-account/order-details/*'
         }, function (tabs) {
             console.log('tabs');
             for (var i = 0; i < tabs.length; i++) {
