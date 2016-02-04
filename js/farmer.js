@@ -591,6 +591,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         $('.a-row.a-size-large.a-text-bold.a-spacing-mini').append('<span class="farmer notice">截图上传完毕</span>');
         $('.z-hd-kufi').append('<span class="farmer notice">截图上传完毕</span>');
         $('#a-popover-amzn-logo-popover').next().children('h1').append('<span class="farmer notice">截图上传完毕</span>');
+        $('.a-row.a-spacing-large').next().append('<span class="farmer notice">截图上传完毕</span>');
     } else if (request.action === 'uploadImage') {
         uploadImage(request.image);
     }
