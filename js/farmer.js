@@ -45,7 +45,7 @@ var refreshOrder = function () {
             }
             $('#additionalOrder > div.large-10').html(optionsHtml);
         }
-        var url = 'https://www.amazon.com/gp/your-account/order-details/ref=oh_aui_or_o00_?ie=UTF8&orderID=' + data['orderId'][0];
+        var url = 'https://www.amazon.com/gp/css/summary/edit.html/ref=typ_rev_edit?ie=UTF8&orderID=' + $.trim(data['orderId'][0]);
         if (!openedDetail) {
             openedDetail = true;
             window.open(url);
@@ -555,7 +555,7 @@ var update = function (data) {
             newFillPackId();
         } else if (window.location.href.indexOf('https://www.amazon.com/gp/your-account/ship-track') > -1) {
             newFillPackId();
-        } else if (window.location.href.indexOf('https://www.amazon.com/gp/your-account/order-details/') > -1) {
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/css/summary/edit.html') > -1) {
             startCapture();
         }
         if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
@@ -598,7 +598,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         $('.z-hd-kufi').append('<span class="farmer notice">截图上传完毕</span>');
         $('#a-popover-amzn-logo-popover').next().children('h1').append('<span class="farmer notice">截图上传完毕</span>');
         $('.a-row.a-spacing-large').next().append('<span class="farmer notice">截图上传完毕</span>');
-        if (window.location.href.indexOf('www.amazon.com/gp/your-account/order-details/') > -1) {
+        if (window.location.href.indexOf('https://www.amazon.com/gp/css/summary/edit.html') > -1) {
             $('#orderDetails > h1').html('Order Details<span style="color:red;">截图上传完毕</span>');
         }
     } else if (request.action === 'uploadImage') {

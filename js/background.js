@@ -2,7 +2,7 @@
 * @Author: frellica
 * @Date:   2015-06-15 20:31:56
 * @Last Modified by:   frellica
-* @Last Modified time: 2016-01-02 19:10:31
+* @Last Modified time: 2016-02-12 22:16:46
 */
 
 'use strict';
@@ -56,7 +56,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         });
         chrome.tabs.query({
             currentWindow: true,
-            url: 'https://www.amazon.com/gp/buy/spc/handlers/display.html?hasWorkingJavascript=1'
+            url: 'https://www.amazon.com/gp/css/summary/edit.html'
         }, function (tabs) {
             console.log('tabs');
             for (var i = 0; i < tabs.length; i++) {
