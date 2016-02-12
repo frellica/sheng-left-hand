@@ -4,6 +4,7 @@ var amazonEmail = '',
     checker = null;
 var uploadImageUrl = 'http://buyers.youdao.com/order/uploadImage';
 var opened = false;
+var openedDetail = false;
 var companyDict = {
     '佐川急便': 'SGH',
     'Yamato': 'Yamato',
@@ -43,6 +44,11 @@ var refreshOrder = function () {
                 optionsHtml += orderTemplate.replace(/#orderId#/g, data['orderId'][i]);
             }
             $('#additionalOrder > div.large-10').html(optionsHtml);
+        }
+        var url = 'https://www.amazon.com/gp/your-account/order-details/ref=oh_aui_or_o00_?ie=UTF8&orderID=' + data['orderId'][0];
+        if (!openedDetail) {
+            openedDetail = true;
+            window.open(url);
         }
     });
     return false;
@@ -345,7 +351,14 @@ var fillHuihuiFrom6pm = function () {
         });
     }, 800);
 };
-
+var startCapture = function () {
+    chrome.storage.local.get(['huihuiOrderId'], function(data) {
+        chrome.runtime.sendMessage({
+            action: 'capture',
+            huihuiOrderId: data['huihuiOrderId']
+        });
+    });
+};
 var getPrice = function () {
     chrome.storage.local.get(['originPrice', 'huihuiOrderId'], function(data) {
         var timerCapture = setInterval(function () {
@@ -370,15 +383,6 @@ var getPrice = function () {
 };
 var getPriceUS = function () {
     chrome.storage.local.get(['originPrice', 'huihuiOrderId'], function(data) {
-        var timerCapture = setInterval(function () {
-            if ($('#spinner-anchor').css('display') === 'none') {
-                chrome.runtime.sendMessage({
-                    action: 'capture',
-                    huihuiOrderId: data['huihuiOrderId']
-                });
-                clearInterval(timerCapture);
-            }
-        }, 500);
         var originPrice = data['originPrice'];
         var nowPrice = parseInt($('.a-color-price.a-size-medium.a-text-right.a-align-bottom.aok-nowrap'
             + '.grand-total-price.a-text-bold').html().replace('$', '').replace(',', ''), 10);
@@ -551,6 +555,8 @@ var update = function (data) {
             newFillPackId();
         } else if (window.location.href.indexOf('https://www.amazon.com/gp/your-account/ship-track') > -1) {
             newFillPackId();
+        } else if (window.location.href.indexOf('https://www.amazon.com/gp/your-account/order-details/') > -1) {
+            startCapture();
         }
         if (window.location.href.indexOf('https://www.amazon.co.jp/gp/buy/thankyou/handlers/display.html') > -1) {
             setTimeout(function() {
@@ -592,6 +598,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
         $('.z-hd-kufi').append('<span class="farmer notice">截图上传完毕</span>');
         $('#a-popover-amzn-logo-popover').next().children('h1').append('<span class="farmer notice">截图上传完毕</span>');
         $('.a-row.a-spacing-large').next().append('<span class="farmer notice">截图上传完毕</span>');
+        if (window.location.href.indexOf('www.amazon.com/gp/your-account/order-details/') > -1) {
+            $('#orderDetails > h1').html('Order Details<span style="color:red;">截图上传完毕</span>');
+        }
     } else if (request.action === 'uploadImage') {
         uploadImage(request.image);
     }
